@@ -1,55 +1,37 @@
 package com.cjk.controller;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpSession;
-
+import com.alibaba.fastjson.JSON;
+import com.cjk.common.exception.AesException;
+import com.cjk.common.utils.WxUtils;
+import com.cjk.domain.TestVO;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 
 @Controller
 public class MainController {
 
-	@GetMapping("/index")
-	public String index() {
-//			@SessionAttribute(WebSecurityConfig.SESSION_KEY) String account, Model model) {
-//		model.addAttribute("name", account);
-		return "redirect:/index/t";
-	}
-
-	
-	@GetMapping("/login")
-	public String login() {
-		return "login";
-	}
-
-	@PostMapping("/loginPost")
-	public @ResponseBody Map<String, Object> loginPost(String account, String password, HttpSession session) {
-		Map<String, Object> map = new HashMap<>();
-		if (!"123456".equals(password) || "".equals(account)) {
-			map.put("success", false);
-			map.put("message", "密码错误或用户名为空");
-			return map;
+	@GetMapping("/testWechat")
+	public String testWechat(HttpServletRequest request, HttpServletResponse resp) throws AesException {
+		String msgSignature = request.getParameter("signature");
+		String msgTimestamp = request.getParameter("timestamp");
+		String msgNonce = request.getParameter("nonce");
+		String echostr = request.getParameter("echostr");
+		if (WxUtils.verifyUrl(msgSignature, msgTimestamp, msgNonce)) {
+			return echostr;
 		}
-
-		// 设置session
-		session.setAttribute(WebSecurityConfig.SESSION_KEY, account);
-
-		map.put("success", true);
-		map.put("message", "登录成功");
-		return map;
+		return null;
 	}
 
-	@GetMapping("/logout")
-	public String logout(HttpSession session) {
-		// 移除session
-		session.removeAttribute(WebSecurityConfig.SESSION_KEY);
-		return "redirect:/login";
+	@GetMapping("/index")
+	@ResponseBody
+	public String index() {
+		return JSON.toJSONString(new TestVO("chk", "male"));
 	}
+
 
 }
